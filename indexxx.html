@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Will You Go Out With Me? 💌</title>
+  
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #ff3366;
+      --primary-light: #ff758c;
+      --primary-gradient: linear-gradient(135deg, #ff3366 0%, #ff6b8b 100%);
+      --bg-gradient: radial-gradient(circle at 50% 20%, #fff0f5 0%, #ffe3eb 50%, #f0e6ff 100%);
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --border-subtle: rgba(255, 255, 255, 0.95);
+      --text-main: #2b2d42;
+      --text-muted: #6c757d;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      padding: 20px;
+      position: relative;
+    }
+
+    /* Ambient animated hearts in background */
+    .bg-icon {
+      position: fixed;
+      pointer-events: none;
+      animation: floatUp 10s infinite linear;
+      z-index: 1;
+      opacity: 0;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(105vh) scale(0.6) rotate(0deg); opacity: 0; }
+      20% { opacity: 0.55; }
+      80% { opacity: 0.55; }
+      100% { transform: translateY(-10vh) scale(1.3) rotate(360deg); opacity: 0; }
+    }
+
+    /* Main Container Card */
+    .app-card {
+      position: relative;
+      z-index: 10;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 32px;
+      padding: 36px 28px;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(255, 51, 102, 0.18);
+      transition: all 0.4s ease;
+    }
+
+    /* Progress step indicator */
+    .stepper {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .step-dot {
+      width: 28px;
+      height: 6px;
+      background: #ffd1dc;
+      border-radius: 10px;
+      transition: all 0.4s ease;
+    }
+
+    .step-dot.active {
+      background: var(--primary);
+      width: 45px;
+    }
+
+    .gif-box {
+      height: 160px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .gif-box img {
+      max-height: 100%;
+      max-width: 190px;
+      border-radius: 20px;
+      filter: drop-shadow(0 8px 16px rgba(255, 80, 120, 0.2));
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    p.subtitle {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      font-weight: 500;
+      min-height: 44px;
+      line-height: 1.4;
+    }
+
+    /* Interactive Buttons */
+    .btn-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      min-height: 75px;
+      position: relative;
+    }
+
+    .btn {
+      font-weight: 700;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      border-radius: 50px;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+
+    .btn-yes {
+      background: var(--primary-gradient);
+      color: #fff;
+      padding: 14px 34px;
+      font-size: 1.15rem;
+      box-shadow: 0 8px 24px rgba(255, 51, 102, 0.4);
+      z-index: 5;
+    }
+
+    .btn-no {
+      background: #ffffff;
+      color: var(--primary);
+      border: 2px solid #ffd0db;
+      padding: 14px 26px;
+      font-size: 1.05rem;
+      z-index: 10;
+    }
+
+    /* Option Grid for Step 2 & Step 3 */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .option-card {
+      background: #ffffff;
+      border: 2px solid #ffe3ec;
+      border-radius: 18px;
+      padding: 14px 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s ease;
+    }
+
+    .option-card span.emoji {
+      font-size: 2rem;
+    }
+
+    .option-card span.label {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .option-card:hover {
+      border-color: var(--primary-light);
+      transform: translateY(-2px);
+    }
+
+    .option-card.selected {
+      background: #fff0f5;
+      border-color: var(--primary);
+      box-shadow: 0 6px 16px rgba(255, 51, 102, 0.2);
+    }
+
+    /* Form Fields for Step 4 */
+    .form-group {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1.5px solid #ffccd8;
+      background: #fff;
+      font-size: 1rem;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-next {
+      width: 100%;
+      background: var(--primary-gradient);
+      color: #fff;
+      padding: 14px;
+      font-size: 1.1rem;
+      box-shadow: 0 8px 24px rgba(255, 51, 102, 0.35);
+    }
+
+    /* Final Ticket / Confirmation */
+    .ticket {
+      background: #ffffff;
+      border: 2px dashed #ff9ebb;
+      border-radius: 24px;
+      padding: 22px;
+      margin: 16px 0 24px 0;
+      text-align: left;
+    }
+
+    .ticket-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+
+    .ticket-row span.key {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .ticket-row span.val {
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .btn-share {
+      width: 100%;
+      background: #25D366;
+      color: white;
+      padding: 14px;
+      font-size: 1.05rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .view-step { display: none; }
+    .view-step.active { display: block; animation: fadeIn 0.4s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Background Hearts -->
+  <div id="heartBg"></div>
+
+  <div class="app-card">
+    
+    <!-- Progress Indicator -->
+    <div class="stepper">
+      <div class="step-dot active" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+      <div class="step-dot" id="dot-3"></div>
+      <div class="step-dot" id="dot-4"></div>
+      <div class="step-dot" id="dot-5"></div>
+    </div>
+
+    <!-- STEP 1: The Question -->
+    <div class="view-step active" id="step-1">
+      <div class="gif-box">
+        <img id="askGif" src="https://media.tenor.com/efbFLuDabUAAAAAj/peach-and-goma-peach-goma.gif" alt="Asking" />
+      </div>
+      <h1 id="askTitle">Would you go out with me? 🌸</h1>
+      <p class="subtitle" id="askSubtitle">Think carefully before you choose... ✨</p>
+      <div class="btn-row" id="askBtnRow">
+        <button id="yesBtn" class="btn btn-yes" onclick="goToStep(2)">Yes! 💕</button>
+        <button id="noBtn" class="btn btn-no" onclick="handleNoClick()">No</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Food Preferences -->
+    <div class="view-step" id="step-2">
+      <div class="gif-box">
+        <img src="https://media.tenor.com/zGm5acSjHCIAAAAj/cat-cute.gif" alt="Food" />
+      </div>
+      <h1>What are we eating? 🍣</h1>
+      <p class="subtitle">Pick your favorite craving for our date:</p>
+      
+      <div class="options-grid" id="foodGrid">
+        <div class="option-card" onclick="selectFood(this, 'Sushi & Boba 🍣')">
+          <span class="emoji">🍣</span>
+          <span class="label">Sushi & Boba</span>
+        </div>
+        <div class="option-card" onclick="selectFood(this, 'Italian & Pasta 🍝')">
+          <span class="emoji">🍝</span>
+          <span class="label">Italian Pasta</span>
+        </div>
+        <div class="option-card" onclick="selectFood(this, 'Burgers & Fries 🍔')">
+          <span class="emoji">🍔</span>
+          <span class="label">Burgers & Fries</span>
+        </div>
+        <div class="option-card" onclick="selectFood(this, 'Sweet Desserts 🍦')">
+          <span class="emoji">🍰</span>
+          <span class="label">Coffee & Cakes</span>
+        </div>
+      </div>
+      <button class="btn btn-next" onclick="validateAndNext(3, selectedFood, 'Please pick a food craving first! 😋')">Continue ➜</button>
+    </div>
+
+    <!-- STEP 3: Activity -->
+    <div class="view-step" id="step-3">
+      <div class="gif-box">
+        <img src="https://media.tenor.com/pZ2s4P3mU1cAAAAj/cat-run.gif" alt="Activity" />
+      </div>
+      <h1>What should we do? 🎡</h1>
+      <p class="subtitle">Pick an activity for the day:</p>
+      
+      <div class="options-grid" id="activityGrid">
+        <div class="option-card" onclick="selectActivity(this, 'Cozy Movie Night 🍿')">
+          <span class="emoji">🎬</span>
+          <span class="label">Movie Night</span>
+        </div>
+        <div class="option-card" onclick="selectActivity(this, 'Sunset Picnic 🧺')">
+          <span class="emoji">🧺</span>
+          <span class="label">Sunset Picnic</span>
+        </div>
+        <div class="option-card" onclick="selectActivity(this, 'Arcade & Games 🕹️')">
+          <span class="emoji">👾</span>
+          <span class="label">Arcade Games</span>
+        </div>
+        <div class="option-card" onclick="selectActivity(this, 'Stargazing & Talks ✨')">
+          <span class="emoji">🌌</span>
+          <span class="label">Stargazing</span>
+        </div>
+      </div>
+      <button class="btn btn-next" onclick="validateAndNext(4, selectedActivity, 'Please choose what we should do! 🌟')">Continue ➜</button>
+    </div>
+
+    <!-- STEP 4: Date & Time -->
+    <div class="view-step" id="step-4">
+      <div class="gif-box">
+        <img src="https://media.tenor.com/978A3W5w07AAAAAj/tkthao219-bubududu.gif" alt="Calendar" />
+      </div>
+      <h1>When are you free? 📅</h1>
+      <p class="subtitle">Lock in our schedule!</p>
+      
+      <div class="form-group">
+        <label>Select Date:</label>
+        <input type="date" id="dateInput" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label>Select Time:</label>
+        <input type="time" id="timeInput" class="form-input" />
+      </div>
+      
+      <button class="btn btn-next" onclick="submitRSVP()">Confirm Date ✨</button>
+    </div>
+
+    <!-- STEP 5: Final Invitation Confirmation -->
+    <div class="view-step" id="step-5">
+      <div class="gif-box">
+        <img src="https://media.tenor.com/T0bT66Yd0aIAAAAj/peach-and-goma-peach-goma-hug.gif" alt="Hug" />
+      </div>
+      <h1 style="font-family: 'Caveat', cursive; font-size: 2.6rem;">It's Official! 🎉</h1>
+      <p style="color: #666; font-weight: 600; margin-bottom: 8px;">Here is our date pass:</p>
+
+      <div class="ticket">
+        <div class="ticket-row">
+          <span class="key">🍽️ Dining:</span>
+          <span class="val" id="summaryFood">-</span>
+        </div>
+        <div class="ticket-row">
+          <span class="key">🎡 Activity:</span>
+          <span class="val" id="summaryActivity">-</span>
+        </div>
+        <div class="ticket-row">
+          <span class="key">📅 Date:</span>
+          <span class="val" id="summaryDate">-</span>
+        </div>
+        <div class="ticket-row">
+          <span class="key">⏰ Time:</span>
+          <span class="val" id="summaryTime">-</span>
+        </div>
+      </div>
+
+      <button class="btn btn-share" onclick="shareWhatsApp()">
+        <span>Send Confirmation via WhatsApp 💬</span>
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    let clickCount = 0;
+    let yesScale = 1.0;
+    let selectedFood = "";
+    let selectedActivity = "";
+
+    const noStages = [
+      { text: "Are you sure? 🥺", sub: "Take a moment to reconsider...", gif: "https://media.tenor.com/7b1VpW3N2pMAAAAj/peach-and-goma-sad.gif" },
+      { text: "Really sure? 💔", sub: "Look how cute the YES button is!", gif: "https://media.tenor.com/PsmJ4yDvh9MAAAAj/crying-sad.gif" },
+      { text: "Pleaseeee? 🥹", sub: "I promise unlimited snacks and laughs!", gif: "https://media.tenor.com/vHqgC8gY0dIAAAAj/peach-cat-crying.gif" },
+      { text: "Wrong button! 👉", sub: "The No button seems to be running away...", gif: "https://media.tenor.com/qU3aFk_x9pMAAAAj/peach-goma.gif" }
+    ];
+
+    // Background floating elements
+    function createHearts() {
+      const bg = document.getElementById('heartBg');
+      const icons = ['🌸', '✨', '💖', '🌷', '🎀', '💕'];
+      for (let i = 0; i < 18; i++) {
+        const heart = document.createElement('span');
+        heart.className = 'bg-icon';
+        heart.innerText = icons[Math.floor(Math.random() * icons.length)];
+        heart.style.left = `${Math.random() * 95}vw`;
+        heart.style.fontSize = `${Math.random() * 16 + 14}px`;
+        heart.style.animationDuration = `${Math.random() * 4 + 7}s`;
+        heart.style.animationDelay = `${Math.random() * 5}s`;
+        bg.appendChild(heart);
+      }
+    }
+    createHearts();
+
+    // Step navigation
+    function goToStep(stepNumber) {
+      document.querySelectorAll('.view-step').forEach(v => v.classList.remove('active'));
+      document.getElementById(`step-${stepNumber}`).classList.add('active');
+
+      document.querySelectorAll('.step-dot').forEach((dot, idx) => {
+        dot.classList.toggle('active', idx < stepNumber);
+      });
+
+      if (stepNumber === 2 || stepNumber === 5) {
+        confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+      }
+    }
+
+    // "No" Button click logic
+    function handleNoClick() {
+      const yesBtn = document.getElementById('yesBtn');
+      const noBtn = document.getElementById('noBtn');
+      const askGif = document.getElementById('askGif');
+      const askSubtitle = document.getElementById('askSubtitle');
+
+      yesScale += 0.35;
+      yesBtn.style.transform = `scale(${yesScale})`;
+
+      const stage = noStages[Math.min(clickCount, noStages.length - 1)];
+      noBtn.innerText = stage.text;
+      askSubtitle.innerText = stage.sub;
+      askSubtitle.style.color = '#ff3366';
+      askGif.src = stage.gif;
+
+      if (clickCount >= 3) {
+        noBtn.style.position = 'fixed';
+        const dodge = () => {
+          noBtn.style.left = `${Math.random() * (window.innerWidth - 120)}px`;
+          noBtn.style.top = `${Math.random() * (window.innerHeight - 60)}px`;
+        };
+        noBtn.onmouseover = dodge;
+        noBtn.ontouchstart = (e) => { e.preventDefault(); dodge(); };
+      }
+      clickCount++;
+    }
+
+    // Food selection
+    function selectFood(el, food) {
+      document.querySelectorAll('#foodGrid .option-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedFood = food;
+    }
+
+    // Activity selection
+    function selectActivity(el, act) {
+      document.querySelectorAll('#activityGrid .option-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedActivity = act;
+    }
+
+    function validateAndNext(nextStep, val, msg) {
+      if (!val) return alert(msg);
+      goToStep(nextStep);
+    }
+
+    // Final Submission
+    function submitRSVP() {
+      const date = document.getElementById('dateInput').value;
+      const time = document.getElementById('timeInput').value;
+      if (!date || !time) return alert("Please select both a date and a time! ⏰");
+
+      document.getElementById('summaryFood').innerText = selectedFood;
+      document.getElementById('summaryActivity').innerText = selectedActivity;
+      document.getElementById('summaryDate').innerText = date;
+      document.getElementById('summaryTime').innerText = time;
+
+      goToStep(5);
+    }
+
+    // WhatsApp Direct Share
+    function shareWhatsApp() {
+      const date = document.getElementById('summaryDate').innerText;
+      const time = document.getElementById('summaryTime').innerText;
+      const text = encodeURIComponent(`Hey! I said YES to our date! 🥰✨\n\n🍽️ Food: ${selectedFood}\n🎡 Activity: ${selectedActivity}\n📅 Date: ${date} at ${time}`);
+      window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    }
+  </script>
+</body>
+</html>
